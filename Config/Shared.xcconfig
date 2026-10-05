@@ -1,0 +1,12 @@
+// Settings shared by the app and the widget extension.
+
+// Your Apple ID "personal team" id (Xcode > Settings > Accounts > your Apple ID > team).
+// Set it in Config/Local.xcconfig so it stays out of the shared project file:
+//   DEVELOPMENT_TEAM = ABCDE12345
+DEVELOPMENT_TEAM =
+
+// macOS-style App Group (team-prefixed): works with a free personal team without
+// registering the group. Referenced from both entitlements files and Info.plists.
+APP_GROUP_ID = $(TeamIdentifierPrefix)fi.sannier.tasks
+
+#include? "Local.xcconfig"
