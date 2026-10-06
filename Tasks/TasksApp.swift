@@ -10,7 +10,7 @@ struct TasksApp: App {
             ContentView()
                 .environment(model)
                 // Room for sidebar + narrowed task list + inspector, so none gets clipped.
-                .frame(minWidth: 940, minHeight: 500)
+                .frame(minWidth: 980, minHeight: 500)
                 #if DEBUG
                 .onAppear { DebugSnapshot.scheduleIfRequested() }
                 #endif

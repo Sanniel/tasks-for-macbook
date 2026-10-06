@@ -52,6 +52,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		AA0000000000000000000005 /* Tasks */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Tasks; sourceTree = "<group>"; };
 		AA0000000000000000000006 /* TasksWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; path = TasksWidget; sourceTree = "<group>"; };
+		AA000000000000000000000F /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Shared; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +82,7 @@
 			children = (
 				AA0000000000000000000005 /* Tasks */,
 				AA0000000000000000000006 /* TasksWidget */,
+				AA000000000000000000000F /* Shared */,
 				AA000000000000000000000E /* TasksKit */,
 				AA0000000000000000000004 /* Config */,
 				AA0000000000000000000003 /* Products */,
@@ -127,6 +129,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000005 /* Tasks */,
+				AA000000000000000000000F /* Shared */,
 			);
 			name = Tasks;
 			packageProductDependencies = (
@@ -151,6 +154,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000006 /* TasksWidget */,
+				AA000000000000000000000F /* Shared */,
 			);
 			name = TasksWidget;
 			packageProductDependencies = (
@@ -308,7 +312,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Config/Tasks.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -332,7 +336,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Config/Tasks.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -353,7 +357,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Config/TasksWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/TasksWidget-Info.plist";
@@ -374,7 +378,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Config/TasksWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/TasksWidget-Info.plist";

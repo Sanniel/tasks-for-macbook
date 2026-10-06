@@ -79,6 +79,20 @@ import Testing
         ])
     }
 
+    @Test func openTasksSkipsClosedAndArchivedAreas() {
+        var archivedArea = Area(name: "Old", colorHex: "#000000", sortOrder: 2)
+        archivedArea.archivedAt = instant("2026-10-01")
+        var done = task("done")
+        done.completedAt = instant("2026-10-01")
+        var archived = task("archived")
+        archived.archivedAt = instant("2026-10-01")
+        let tasks = [task("b", area: second), task("a"), done, archived, task("in archived area", area: archivedArea)]
+        let all = TaskOrdering.openTasks(tasks, areas: [first, second, archivedArea], today: today, locale: Locale(identifier: "en_US"))
+        #expect(all.map(\.title) == ["a", "b"])
+        let one = TaskOrdering.openTasks(tasks, areas: [first, second, archivedArea], areaID: second.id, today: today)
+        #expect(one.map(\.title) == ["b"])
+    }
+
     @Test func doneViewNewestCompletionFirst() {
         var older = task("older"), newer = task("newer")
         older.completedAt = instant("2026-10-01")

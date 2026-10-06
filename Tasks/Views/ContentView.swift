@@ -16,6 +16,7 @@ struct ContentView: View {
             case .archive: ArchiveView()
             }
         }
+        .onOpenURL { model.handle($0) }
         .alert(
             "Something went wrong",
             isPresented: Binding(get: { model.errorMessage != nil }, set: { if !$0 { model.errorMessage = nil } })

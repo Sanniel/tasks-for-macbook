@@ -76,12 +76,7 @@ final class AppModel {
 
     /// Open tasks in active areas, in the shared sort order.
     func openTasks(areaID: UUID?) -> [TaskItem] {
-        let active = activeAreas
-        let activeIDs = Set(active.map(\.id))
-        let filtered = tasks.filter {
-            $0.isOpen && activeIDs.contains($0.areaID) && (areaID == nil || $0.areaID == areaID)
-        }
-        return TaskOrdering.sorted(filtered, areas: active, today: today)
+        TaskOrdering.openTasks(tasks, areas: areas, areaID: areaID, today: today)
     }
 
     func openTaskCount(areaID: UUID?) -> Int {
@@ -307,6 +302,29 @@ final class AppModel {
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.refresh() }
             }
+        }
+        // The widget changed data (e.g. completed a task).
+        ChangeNotifier.observe { [weak self] in
+            Task { @MainActor in self?.reload() }
+        }
+    }
+
+    // MARK: Deep links (from the widget)
+
+    func handle(_ url: URL) {
+        switch DeepLink(url: url) {
+        case .add(let areaID):
+            if let areaID, area(areaID)?.archivedAt == nil, area(areaID) != nil {
+                sidebarSelection = .area(areaID)
+            }
+            focusQuickAdd()
+        case .task(let id):
+            reload()  // the widget may show something newer than our copy
+            guard let task = task(id), task.isOpen else { return }
+            if sidebarSelection != .area(task.areaID) { sidebarSelection = .all }
+            selectedTaskIDs = [id]
+        case nil:
+            break
         }
     }
 }

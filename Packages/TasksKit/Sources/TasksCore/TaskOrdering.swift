@@ -26,6 +26,20 @@ public enum TaskOrdering {
             .map(\.task)
     }
 
+    /// The open tasks shown in a task list (and the widget): not completed or
+    /// archived, in a non-archived area, optionally limited to one area, sorted.
+    public static func openTasks(
+        _ tasks: [TaskItem], areas: [Area], areaID: UUID? = nil, today: LocalDate,
+        locale: Locale = .current
+    ) -> [TaskItem] {
+        let activeAreas = areas.filter { $0.archivedAt == nil }
+        let activeIDs = Set(activeAreas.map(\.id))
+        let filtered = tasks.filter {
+            $0.isOpen && activeIDs.contains($0.areaID) && (areaID == nil || $0.areaID == areaID)
+        }
+        return sorted(filtered, areas: activeAreas, today: today, locale: locale)
+    }
+
     /// Completed tasks for the Done view: newest completion first.
     public static func sortedByCompletion(_ tasks: [TaskItem]) -> [TaskItem] {
         tasks.sorted {

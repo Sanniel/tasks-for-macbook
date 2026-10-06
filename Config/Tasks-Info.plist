@@ -4,5 +4,16 @@
 <dict>
 	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_ID)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>fi.sannier.Tasks</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fi.sannier.tasks</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -93,21 +93,6 @@ struct CompactLabelStyle: LabelStyle {
     }
 }
 
-/// The area as a small colored label.
-struct AreaPill: View {
-    let area: Area
-
-    var body: some View {
-        Text(area.name)
-            .font(.caption.weight(.semibold))
-            .lineLimit(1)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Color(hex: area.colorHex), in: .rect(cornerRadius: 5))
-    }
-}
-
 /// Widths of the right-hand columns in task rows.
 enum TaskColumns {
     static let area: CGFloat = 110

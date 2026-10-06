@@ -47,6 +47,9 @@ struct TaskListView: View {
                 }
             }
         }
+        // A fixed minimum keeps the split view from re-measuring this column as quick add
+        // switches layouts (a changing minimum caused a layout-loop crash).
+        .frame(minWidth: 440)
         .navigationTitle(areaID.flatMap { model.area($0)?.name } ?? "All Tasks")
         .inspector(isPresented: Binding(
             get: { model.selectedTask?.isOpen == true },
@@ -185,28 +188,6 @@ struct PriorityBadge: View {
             }
         }
         .frame(width: 26, alignment: .trailing)
-    }
-}
-
-/// The priority's mark: !!!, !!, !, nothing for Normal, ↓ for Low.
-struct PriorityMark: View {
-    let priority: Priority
-    /// Point size of the exclamation marks; the Low arrow is drawn 3 pt smaller.
-    var size: CGFloat = 14
-
-    var body: some View {
-        switch priority {
-        case .normal:
-            EmptyView()
-        case .low:
-            Image(systemName: "arrow.down")
-                .font(.system(size: size - 3, weight: .heavy))
-                .foregroundStyle(priority.color)
-        default:
-            Text(String(repeating: "!", count: priority.rawValue))
-                .font(.system(size: size, weight: .heavy))
-                .foregroundStyle(priority.color)
-        }
     }
 }
 
