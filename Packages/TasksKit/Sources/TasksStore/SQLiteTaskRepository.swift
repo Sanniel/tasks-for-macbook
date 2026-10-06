@@ -96,6 +96,9 @@ public final class SQLiteTaskRepository: TaskRepository {
             for area in changes.areas { try AreaRecord(area).save(db) }
             for task in changes.tasks { try TaskRecord(task).save(db) }
             for subtask in changes.subtasks { try SubtaskRecord(subtask).save(db) }
+            for tombstone in changes.tombstones {
+                try TombstoneRecord(id: tombstone.id, entityType: tombstone.entityType, deletedAt: tombstone.deletedAt).save(db)
+            }
 
             for id in changes.purgedSubtaskIDs {
                 if try SubtaskRecord.deleteOne(db, key: id.dbString) {

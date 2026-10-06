@@ -3,6 +3,7 @@ import Foundation
 import Observation
 import TasksCore
 import TasksStore
+import UniformTypeIdentifiers
 import WidgetKit
 
 enum SidebarItem: Hashable {
@@ -307,6 +308,54 @@ final class AppModel {
         ChangeNotifier.observe { [weak self] in
             Task { @MainActor in self?.reload() }
         }
+    }
+
+    // MARK: Backup (JSON export / merge import)
+
+    struct PendingImport: Identifiable {
+        let id = UUID()
+        let fileName: String
+        let changes: ChangeSet
+        let summary: Backup.MergeSummary
+    }
+
+    /// A checked import waiting for the user's confirmation.
+    var pendingImport: PendingImport?
+
+    func exportBackup() {
+        guard let repository else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = "Tasks Backup \(LocalDate.today().isoString).json"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try Backup.encode(Backup.export(from: repository)).write(to: url, options: .atomic)
+        } catch {
+            errorMessage = "Export failed: \(error)"
+        }
+    }
+
+    /// Reads and checks a backup, then asks for confirmation (see `confirmImport`).
+    func chooseImportFile() {
+        guard let repository else { return }
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let document = try Backup.decode(Data(contentsOf: url))
+            let plan = try Backup.mergePlan(document, into: repository)
+            pendingImport = PendingImport(fileName: url.lastPathComponent, changes: plan.changes, summary: plan.summary)
+        } catch {
+            errorMessage = "\(error)"
+        }
+    }
+
+    func confirmImport() {
+        guard let pending = pendingImport else { return }
+        pendingImport = nil
+        apply(pending.changes)  // one transaction: all or nothing
     }
 
     // MARK: Deep links (from the widget)

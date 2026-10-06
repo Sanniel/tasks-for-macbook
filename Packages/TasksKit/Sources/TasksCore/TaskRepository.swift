@@ -36,10 +36,14 @@ public struct ChangeSet: Sendable {
     /// Purging a task also purges its subtasks.
     public var purgedTaskIDs: [UUID] = []
     public var purgedSubtaskIDs: [UUID] = []
+    /// Tombstones to record as-is (e.g. from an import). Unlike purges, these
+    /// delete nothing; they only keep the record of deletes for future sync.
+    public var tombstones: [Tombstone] = []
 
     public init(
         areas: [Area] = [], tasks: [TaskItem] = [], subtasks: [Subtask] = [],
-        purgedAreaIDs: [UUID] = [], purgedTaskIDs: [UUID] = [], purgedSubtaskIDs: [UUID] = []
+        purgedAreaIDs: [UUID] = [], purgedTaskIDs: [UUID] = [], purgedSubtaskIDs: [UUID] = [],
+        tombstones: [Tombstone] = []
     ) {
         self.areas = areas
         self.tasks = tasks
@@ -47,11 +51,13 @@ public struct ChangeSet: Sendable {
         self.purgedAreaIDs = purgedAreaIDs
         self.purgedTaskIDs = purgedTaskIDs
         self.purgedSubtaskIDs = purgedSubtaskIDs
+        self.tombstones = tombstones
     }
 
     public var isEmpty: Bool {
         areas.isEmpty && tasks.isEmpty && subtasks.isEmpty
             && purgedAreaIDs.isEmpty && purgedTaskIDs.isEmpty && purgedSubtaskIDs.isEmpty
+            && tombstones.isEmpty
     }
 }
 

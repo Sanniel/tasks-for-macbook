@@ -30,6 +30,12 @@ struct TaskCommands: Commands {
             Button("New Task") { model.focusQuickAdd() }
                 .keyboardShortcut("n")
         }
+        CommandGroup(replacing: .importExport) {
+            Button("Export Backup…") { model.exportBackup() }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+            Button("Import Backup…") { model.chooseImportFile() }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+        }
         CommandMenu("Task") {
             let selection = model.selectedTaskIDs
             // Actions read the selection when clicked; `selection` only drives enabled state.
