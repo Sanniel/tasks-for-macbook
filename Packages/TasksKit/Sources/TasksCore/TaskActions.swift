@@ -184,3 +184,21 @@ extension TaskRepository {
         try apply(TaskActions.restoreArea(area, tasks: tasks, now: now), at: now)
     }
 }
+
+extension TaskRepository {
+    /// Ticks a checklist item on or off. Also bumps the parent task's `updatedAt`, so
+    /// the task counts as edited (see `TaskActions.reopen`). Used by the widget.
+    public func setSubtask(id: UUID, done: Bool, now: Date = Date()) throws {
+        guard var subtask = try fetchSubtasks(taskIDs: nil).first(where: { $0.id == id }),
+              subtask.isDone != done
+        else { return }
+        subtask.isDone = done
+        subtask.updatedAt = now
+        var changes = ChangeSet(subtasks: [subtask])
+        if var task = try fetchTask(id: subtask.taskID) {
+            task.updatedAt = now
+            changes.tasks = [task]
+        }
+        try apply(changes, at: now)
+    }
+}

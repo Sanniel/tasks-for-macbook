@@ -33,6 +33,15 @@ struct WidgetTask: Identifiable {
     let priority: Priority  // effective
     let dueText: String?
     let isRed: Bool  // due today or overdue
+    /// Checklist items still to do (capped; see `Provider.layout`).
+    var subtasks: [WidgetSubtask] = []
+    /// "done/total" when the task has a checklist.
+    var progress: String? = nil
+}
+
+struct WidgetSubtask: Identifiable {
+    let id: UUID
+    let title: String
 }
 
 struct TasksEntry: TimelineEntry {
@@ -76,12 +85,17 @@ struct Provider: AppIntentTimelineProvider {
             policy: .atEnd)
     }
 
-    static func rowLimit(for family: WidgetFamily) -> Int {
+    /// How much fits: vertical space for rows (points), and the most checklist items
+    /// shown per task so one long checklist can't push out the other tasks.
+    static func layout(for family: WidgetFamily) -> (height: CGFloat, subtasksPerTask: Int) {
         switch family {
-        case .systemLarge, .systemExtraLarge: 10
-        default: 4
+        case .systemLarge, .systemExtraLarge: (270, 4)
+        default: (100, 2)
         }
     }
+
+    static let taskRowHeight: CGFloat = 25
+    static let subtaskRowHeight: CGFloat = 21
 
     private func entry(at date: Date, configuration: TaskListConfigurationIntent, family: WidgetFamily) -> TasksEntry {
         let today = LocalDate(date)
@@ -99,14 +113,31 @@ struct Provider: AppIntentTimelineProvider {
             let open = TaskOrdering.openTasks(
                 try repo.fetchTasks(TaskQuery(status: .open, areaID: areaID)), areas: areas, areaID: areaID, today: today)
                 .filter { $0.isStarted(today: today) }
-            let shown = open.prefix(Self.rowLimit(for: family)).map { task in
-                WidgetTask(
+            let checklists = Dictionary(grouping: try repo.fetchSubtasks(taskIDs: open.map(\.id)), by: \.taskID)
+
+            // Fill the available height: each task, then its unticked checklist items.
+            let (height, perTask) = Self.layout(for: family)
+            var used: CGFloat = 0
+            var shown: [WidgetTask] = []
+            for task in open {
+                guard used + Self.taskRowHeight <= height else { break }
+                used += Self.taskRowHeight
+                let items = checklists[task.id] ?? []
+                var subtasks: [WidgetSubtask] = []
+                for item in items.filter({ !$0.isDone }).prefix(perTask) {
+                    guard used + Self.subtaskRowHeight <= height else { break }
+                    used += Self.subtaskRowHeight
+                    subtasks.append(WidgetSubtask(id: item.id, title: item.title))
+                }
+                shown.append(WidgetTask(
                     id: task.id,
                     title: task.title,
                     colorHex: colors[task.areaID] ?? "#8D8D8D",
                     priority: EffectivePriority(task, today: today).value,
                     dueText: task.dueDate?.friendlyText(today: today),
-                    isRed: task.isDueTodayOrOverdue(today: today))
+                    isRed: task.isDueTodayOrOverdue(today: today),
+                    subtasks: subtasks,
+                    progress: items.isEmpty ? nil : "\(items.filter(\.isDone).count)/\(items.count)"))
             }
             return TasksEntry(
                 date: date, title: area?.name ?? "Tasks", areaID: area?.id, tasks: shown, totalCount: open.count)
@@ -175,40 +206,64 @@ private struct TaskLine: View {
     let showDue: Bool
 
     var body: some View {
-        HStack(spacing: 6) {
-            RoundedRectangle(cornerRadius: 1)
-                .fill(task.isRed ? Color.red : Color.clear)
-                .frame(width: 2.5, height: 16)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(task.isRed ? Color.red : Color.clear)
+                    .frame(width: 2.5, height: 16)
 
-            Button(intent: CompleteTaskIntent(taskID: task.id)) {
-                Image(systemName: "circle")
-                    .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
+                Button(intent: CompleteTaskIntent(taskID: task.id)) {
+                    Image(systemName: "circle")
+                        .font(.system(size: 15))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
 
-            Link(destination: DeepLink.task(task.id).url) {
-                HStack(spacing: 5) {
-                    if showArea {
-                        Circle().fill(Color(hex: task.colorHex)).frame(width: 7, height: 7)
+                Link(destination: DeepLink.task(task.id).url) {
+                    HStack(spacing: 5) {
+                        if showArea {
+                            Circle().fill(Color(hex: task.colorHex)).frame(width: 7, height: 7)
+                        }
+                        Text(task.title)
+                            .font(.system(size: 13, weight: task.isRed ? .semibold : .medium))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        if let progress = task.progress {
+                            Text(progress)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 4)
+                        if showDue, let due = task.dueText {
+                            Text(due)
+                                .font(.system(size: 12))
+                                .foregroundStyle(task.isRed ? Color.red : Color.secondary)
+                                .lineLimit(1)
+                        }
+                        ZStack(alignment: .trailing) {
+                            Color.clear
+                            PriorityMark(priority: task.priority, size: 12)
+                        }
+                        .frame(width: 18, height: 14)
                     }
-                    Text(task.title)
-                        .font(.system(size: 13, weight: task.isRed ? .medium : .regular))
+                }
+            }
+
+            // Unticked checklist items, aligned after the checkbox; ticking one removes it.
+            ForEach(task.subtasks) { subtask in
+                HStack(spacing: 5) {
+                    Button(intent: CompleteSubtaskIntent(subtaskID: subtask.id)) {
+                        Image(systemName: "square")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    Text(subtask.title)
+                        .font(.system(size: 13))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    Spacer(minLength: 4)
-                    if showDue, let due = task.dueText {
-                        Text(due)
-                            .font(.system(size: 12))
-                            .foregroundStyle(task.isRed ? Color.red : Color.secondary)
-                            .lineLimit(1)
-                    }
-                    ZStack(alignment: .trailing) {
-                        Color.clear
-                        PriorityMark(priority: task.priority, size: 12)
-                    }
-                    .frame(width: 18, height: 14)
                 }
+                .padding(.leading, 29.5)
             }
         }
     }

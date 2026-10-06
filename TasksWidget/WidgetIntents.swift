@@ -66,3 +66,25 @@ struct AreaQuery: EntityQuery {
             .map { AreaEntity(id: $0.id.uuidString, name: $0.name) }
     }
 }
+
+/// Checkbox for a checklist item in the widget.
+struct CompleteSubtaskIntent: AppIntent {
+    static let title: LocalizedStringResource = "Complete Checklist Item"
+    static let isDiscoverable = false
+
+    @Parameter(title: "Checklist item ID")
+    var subtaskID: String
+
+    init() {}
+
+    init(subtaskID: UUID) {
+        self.subtaskID = subtaskID.uuidString
+    }
+
+    func perform() async throws -> some IntentResult {
+        guard let id = UUID(uuidString: subtaskID) else { return .result() }
+        try WidgetStore.repository.get().setSubtask(id: id, done: true)
+        ChangeNotifier.post()
+        return .result()
+    }
+}

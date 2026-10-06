@@ -13,54 +13,53 @@ struct TaskListView: View {
         let started = tasks.filter { $0.isStarted(today: model.today) }
         let notStarted = tasks.filter { !$0.isStarted(today: model.today) }
 
-        VStack(spacing: 0) {
-            QuickAddBar(fixedAreaID: areaID)
-            Divider()
-            List(selection: $model.selectedTaskIDs) {
-                ForEach(started) { task in
-                    TaskRow(task: task, showArea: areaID == nil).tag(task.id)
-                }
-                if !notStarted.isEmpty {
-                    Section("Not started yet") {
-                        ForEach(notStarted) { task in
-                            TaskRow(task: task, showArea: areaID == nil).tag(task.id)
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                QuickAddBar(fixedAreaID: areaID)
+                Divider()
+                List(selection: $model.selectedTaskIDs) {
+                    ForEach(started) { task in
+                        TaskRow(task: task, showArea: areaID == nil).tag(task.id)
+                    }
+                    if !notStarted.isEmpty {
+                        Section("Not started yet") {
+                            ForEach(notStarted) { task in
+                                TaskRow(task: task, showArea: areaID == nil).tag(task.id)
+                            }
                         }
                     }
                 }
-            }
-            .onDeleteCommand { model.archive(model.selectedTaskIDs) }
-            .contextMenu(forSelectionType: UUID.self) { ids in
-                Button("Complete") { model.complete(ids) }
-                Menu("Priority") {
-                    ForEach(Priority.menuOrder, id: \.self) { p in
-                        Button(p.name) { model.setPriority(p, for: ids) }
+                .onDeleteCommand { model.archive(model.selectedTaskIDs) }
+                .contextMenu(forSelectionType: UUID.self) { ids in
+                    Button("Complete") { model.complete(ids) }
+                    Menu("Priority") {
+                        ForEach(Priority.menuOrder, id: \.self) { p in
+                            Button(p.name) { model.setPriority(p, for: ids) }
+                        }
+                    }
+                    Divider()
+                    Button("Archive") { model.archive(ids) }
+                }
+                .overlay {
+                    if tasks.isEmpty {
+                        ContentUnavailableView(
+                            "No open tasks", systemImage: "checkmark.circle",
+                            description: Text("Add one above, or press ⌘N."))
                     }
                 }
+            }
+            .frame(maxWidth: .infinity)
+
+            // Task editor as a fixed-width column inside the window (not a system inspector,
+            // which widens the window on first open and could end up partly off-screen).
+            if let task = model.selectedTask, task.isOpen {
                 Divider()
-                Button("Archive") { model.archive(ids) }
-            }
-            .overlay {
-                if tasks.isEmpty {
-                    ContentUnavailableView(
-                        "No open tasks", systemImage: "checkmark.circle",
-                        description: Text("Add one above, or press ⌘N."))
-                }
-            }
-        }
-        // A fixed minimum keeps the split view from re-measuring this column as quick add
-        // switches layouts (a changing minimum caused a layout-loop crash).
-        .frame(minWidth: 440)
-        .navigationTitle(areaID.flatMap { model.area($0)?.name } ?? "All Tasks")
-        .inspector(isPresented: Binding(
-            get: { model.selectedTask?.isOpen == true },
-            set: { if !$0 { model.selectedTaskIDs = [] } }
-        )) {
-            if let task = model.selectedTask {
                 TaskDetailView(task: task)
                     .id(task.id)
-                    .inspectorColumnWidth(min: 280, ideal: 300, max: 420)
+                    .frame(width: 300)
             }
         }
+        .navigationTitle(areaID.flatMap { model.area($0)?.name } ?? "All Tasks")
     }
 }
 
@@ -86,7 +85,7 @@ struct QuickAddBar: View {
         // middle column is narrow (e.g. with the task inspector open).
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 10) {
-                titleField.frame(minWidth: 160)
+                titleField.frame(minWidth: 160, idealWidth: 220)
                 controls
             }
             VStack(alignment: .leading, spacing: 8) {

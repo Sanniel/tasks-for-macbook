@@ -35,6 +35,18 @@ import TasksCore
         #expect(try repo.fetchTombstones().map(\.id) == [recentDone.id])
     }
 
+    @Test func setSubtaskTicksItemAndTouchesTask() throws {
+        let area = Area(name: "Home", colorHex: "#000000", sortOrder: 0, createdAt: t0)
+        let task = TaskItem(title: "Clean", areaID: area.id, createdAt: t0)
+        let sub = Subtask(taskID: task.id, title: "Kitchen", sortOrder: 0, createdAt: t0)
+        try repo.apply(ChangeSet(areas: [area], tasks: [task], subtasks: [sub]))
+
+        try repo.setSubtask(id: sub.id, done: true, now: days(1))
+
+        #expect(try repo.fetchSubtasks(taskID: task.id).first?.isDone == true)
+        #expect(try repo.fetchTask(id: task.id)?.updatedAt == days(1))
+    }
+
     @Test func completeTaskCreatesNextOccurrenceWithSubtasks() throws {
         let area = Area(name: "Home", colorHex: "#000000", sortOrder: 0, createdAt: t0)
         let task = TaskItem(

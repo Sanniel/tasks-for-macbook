@@ -31,7 +31,7 @@ struct TaskRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(task.title)
-                        .fontWeight(red ? .medium : .regular)
+                        .font(.system(size: 15, weight: red ? .medium : .regular))
                         .lineLimit(2)
                     HStack(spacing: 10) {
                         if !started, let start = task.startDate {
@@ -114,15 +114,16 @@ struct SubtaskLine: View {
                 model.updateSubtask(s)
             } label: {
                 Image(systemName: subtask.isDone ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 16))
                     .foregroundStyle(subtask.isDone ? Color.secondary : Color.primary.opacity(0.6))
             }
             .buttonStyle(.plain)
             .help(subtask.isDone ? "Mark not done" : "Mark done")
             Text(subtask.title)
                 .strikethrough(subtask.isDone)
-                .foregroundStyle(subtask.isDone ? .secondary : .primary)
+                .foregroundStyle(subtask.isDone ? Color.secondary : Color.primary.opacity(0.75))
                 .lineLimit(1)
         }
-        .font(.callout)
+        .font(.system(size: 14))
     }
 }
