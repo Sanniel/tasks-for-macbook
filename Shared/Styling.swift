@@ -1,25 +1,25 @@
 import SwiftUI
 import TasksCore
 
-enum AreaPalette {
-    static let colors = [
-        "#E5484D", "#F76B15", "#E2A336", "#46A758", "#12A594",
-        "#0090FF", "#3E63DD", "#8E4EC6", "#D6409F", "#8D8D8D",
-    ]
-}
+/// The app's muted, earthy palette (see design/palette-preview.html). Named colors with light
+/// and dark variants live in Shared/Palette.xcassets, compiled into the app and widget.
+enum Palette {
+    static let background = Color("Background")
+    static let surface = Color("Surface")
+    static let text = Color("TextPrimary")
+    static let secondaryText = Color("TextSecondary")
+    static let tertiaryText = Color("TextTertiary")
+    static let separator = Color("Separator")
+    /// Overdue and due-today text and row marker.
+    static let overdue = Color("Overdue")
+    /// Urgent priority marks.
+    static let urgent = Color("Urgent")
+    /// Greyed-out text of tasks that haven't started yet.
+    static let notStarted = Color("NotStarted")
 
-extension Color {
-    /// `#RRGGBB`; grey if malformed.
-    init(hex: String) {
-        let digits = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
-        guard digits.count == 6, let value = UInt32(digits, radix: 16) else {
-            self = .gray
-            return
-        }
-        self.init(
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255)
+    /// An area color by name (`AreaColors.names`); unknown names use the fallback.
+    static func area(_ name: String) -> Color {
+        Color("Area/" + (AreaColors.names.contains(name) ? name : AreaColors.fallback))
     }
 }
 
@@ -27,13 +27,13 @@ extension Priority {
     /// Ordered for menus: most important first.
     static let menuOrder: [Priority] = [.urgent, .high, .raised, .normal, .low]
 
+    /// Urgent uses the overdue red, High the urgent ochre; lower levels are quiet.
     var color: Color {
         switch self {
-        case .urgent: .red
-        case .high: .orange
-        case .raised: .yellow
-        case .normal: .secondary
-        case .low: .blue
+        case .urgent: Palette.overdue
+        case .high: Palette.urgent
+        case .raised, .normal: Palette.secondaryText
+        case .low: Palette.tertiaryText
         }
     }
 
@@ -61,6 +61,14 @@ extension LocalDate {
             let style = Date.FormatStyle.dateTime.month(.abbreviated).day()
             return year == today.year ? date.formatted(style) : date.formatted(style.year())
         }
+    }
+
+    /// Like `friendlyText`, but an overdue date reads "Overdue · 2 days", so overdue
+    /// doesn't rely on color alone.
+    func dueText(today: LocalDate) -> String {
+        let late = days(until: today)
+        guard late > 0 else { return friendlyText(today: today) }
+        return "Overdue · \(late) day\(late == 1 ? "" : "s")"
     }
 }
 

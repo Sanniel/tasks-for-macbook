@@ -18,7 +18,7 @@ struct SidebarView: View {
                     Label {
                         Text(area.name)
                     } icon: {
-                        Image(systemName: "circle.fill").foregroundStyle(Color(hex: area.colorHex))
+                        Image(systemName: "circle.fill").foregroundStyle(Palette.area(area.colorName))
                     }
                     .badge(model.openTaskCount(areaID: area.id))
                     .tag(SidebarItem.area(area.id))
@@ -43,7 +43,7 @@ struct SidebarView: View {
                         .foregroundStyle(.orange)
                 }
                 Button {
-                    editingArea = AreaDraft()
+                    editingArea = AreaDraft(colorName: model.nextAreaColor)
                 } label: {
                     Label("New Area", systemImage: "plus")
                 }
@@ -81,14 +81,16 @@ struct AreaDraft: Identifiable {
     let id = UUID()
     var areaID: UUID?
     var name = ""
-    var colorHex = AreaPalette.colors[5]
+    var colorName: String
 
-    init() {}
+    init(colorName: String) {
+        self.colorName = colorName
+    }
 
     init(_ area: Area) {
         areaID = area.id
         name = area.name
-        colorHex = area.colorHex
+        colorName = area.colorName
     }
 }
 
@@ -104,20 +106,21 @@ struct AreaEditor: View {
                 .textFieldStyle(.roundedBorder)
                 .onSubmit(save)
             HStack(spacing: 8) {
-                ForEach(AreaPalette.colors, id: \.self) { hex in
+                ForEach(AreaColors.names, id: \.self) { name in
                     Button {
-                        draft.colorHex = hex
+                        draft.colorName = name
                     } label: {
                         Circle()
-                            .fill(Color(hex: hex))
+                            .fill(Palette.area(name))
                             .frame(width: 22, height: 22)
                             .overlay {
-                                if draft.colorHex == hex {
+                                if draft.colorName == name {
                                     Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white)
                                 }
                             }
                     }
                     .buttonStyle(.plain)
+                    .help(name)
                 }
             }
             HStack {
@@ -135,7 +138,7 @@ struct AreaEditor: View {
 
     private func save() {
         guard !draft.name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        model.saveArea(id: draft.areaID, name: draft.name, colorHex: draft.colorHex)
+        model.saveArea(id: draft.areaID, name: draft.name, colorName: draft.colorName)
         dismiss()
     }
 }

@@ -6,7 +6,7 @@ import Testing
     let t0 = Date(timeIntervalSince1970: 1_790_000_000.123)
 
     private func sampleDocument() -> BackupDocument {
-        let area = Area(name: "Private", colorHex: "#0090FF", sortOrder: 0, createdAt: t0)
+        let area = Area(name: "Private", colorName: "Slate", sortOrder: 0, createdAt: t0)
         let task = TaskItem(
             title: "Gym", areaID: area.id, priority: .high, notes: "Leg day",
             startDate: d("2026-10-04"), dueDate: d("2026-10-05"),
@@ -26,7 +26,7 @@ import Testing
     @Test func usesPortableValueFormats() throws {
         let json = String(decoding: try Backup.encode(sampleDocument()), as: UTF8.self)
         #expect(json.contains(#""format" : "fi.sannier.tasks.backup""#))
-        #expect(json.contains(#""version" : 1"#))
+        #expect(json.contains(#""version" : 2"#))
         #expect(json.contains(#""dueDate" : "2026-10-05""#))
         #expect(json.contains(#""exportedAt" : "2026-09-21T14:13:20.123Z""#))
         #expect(json.contains(#""type" : "weekly""#))
@@ -37,8 +37,8 @@ import Testing
     @Test func rejectsOtherFiles() {
         #expect(throws: BackupError.notJSON("not a JSON object")) { try Backup.decode(Data("hello".utf8)) }
         #expect(throws: BackupError.wrongFormat) { try Backup.decode(Data(#"{"format":"other","version":1}"#.utf8)) }
-        #expect(throws: BackupError.unsupportedVersion(2)) {
-            try Backup.decode(Data(#"{"format":"fi.sannier.tasks.backup","version":2}"#.utf8))
+        #expect(throws: BackupError.unsupportedVersion(3)) {
+            try Backup.decode(Data(#"{"format":"fi.sannier.tasks.backup","version":3}"#.utf8))
         }
     }
 

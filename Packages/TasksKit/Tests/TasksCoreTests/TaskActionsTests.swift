@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct TaskActionsTests {
     let now = instant("2026-10-05")
-    let area = Area(name: "Private", colorHex: "#FF0000", sortOrder: 0)
+    let area = Area(name: "Private", colorName: "Slate", sortOrder: 0)
 
     @Test func completingPlainTask() {
         let task = TaskItem(title: "Call", areaID: area.id, dueDate: d("2026-10-05"))

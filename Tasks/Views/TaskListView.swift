@@ -20,15 +20,19 @@ struct TaskListView: View {
                 List(selection: $model.selectedTaskIDs) {
                     ForEach(started) { task in
                         TaskRow(task: task, showArea: areaID == nil).tag(task.id)
+                        .listRowSeparatorTint(Palette.separator)
                     }
                     if !notStarted.isEmpty {
                         Section("Not started yet") {
                             ForEach(notStarted) { task in
                                 TaskRow(task: task, showArea: areaID == nil).tag(task.id)
+                        .listRowSeparatorTint(Palette.separator)
                             }
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .background(Palette.surface)
                 .onDeleteCommand { model.archive(model.selectedTaskIDs) }
                 .contextMenu(forSelectionType: UUID.self) { ids in
                     Button("Complete") { model.complete(ids) }
@@ -98,13 +102,14 @@ struct QuickAddBar: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+        .background(Palette.background)
         .onChange(of: model.quickAddFocusRequest) { focused = true }
         .onAppear { if model.quickAddFocusRequest > 0 { focused = true } }
     }
 
     private var titleField: some View {
         HStack(spacing: 10) {
-            Image(systemName: "plus.circle.fill").foregroundStyle(.tint).font(.title3)
+            Image(systemName: "plus.circle.fill").foregroundStyle(Palette.area("Sage")).font(.title3)
             TextField("New task", text: $title)
                 .textFieldStyle(.plain)
                 .font(.title3)
@@ -146,6 +151,8 @@ struct QuickAddBar: View {
 struct PriorityMenu: View {
     let priority: Priority
     var effective: EffectivePriority? = nil
+    /// Overrides the mark color (overdue rows).
+    var tint: Color? = nil
     let onChange: (Priority) -> Void
     @State private var hovering = false
 
@@ -161,7 +168,8 @@ struct PriorityMenu: View {
         } label: {
             PriorityBadge(
                 priority: effective?.value ?? priority,
-                showsPlaceholder: hovering)
+                showsPlaceholder: hovering,
+                tint: tint)
         }
         // .button + .plain draws the label as-is; .borderlessButton ignores custom fonts.
         .menuStyle(.button)
@@ -176,14 +184,15 @@ struct PriorityMenu: View {
 struct PriorityBadge: View {
     let priority: Priority
     var showsPlaceholder = false
+    var tint: Color? = nil
 
     var body: some View {
         Group {
             if priority == .normal {
-                Text("!").foregroundStyle(showsPlaceholder ? Color.secondary.opacity(0.35) : .clear)
+                Text("!").foregroundStyle(showsPlaceholder ? Palette.tertiaryText.opacity(0.6) : .clear)
                     .font(.system(size: 14, weight: .heavy))
             } else {
-                PriorityMark(priority: priority)
+                PriorityMark(priority: priority, tint: tint)
             }
         }
         .frame(width: 26, alignment: .trailing)

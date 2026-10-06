@@ -9,7 +9,7 @@ import TasksCore
 
     private func populated() throws -> SQLiteTaskRepository {
         let repo = try SQLiteTaskRepository.inMemory()
-        let area = Area(name: "Private", colorHex: "#0090FF", sortOrder: 0, createdAt: t0)
+        let area = Area(name: "Private", colorName: "Slate", sortOrder: 0, createdAt: t0)
         let open = TaskItem(
             title: "Gym", areaID: area.id, dueDate: LocalDate(isoString: "2026-10-05"),
             recurrence: RecurrenceRule(pattern: .monthly(days: [5, 31]), endDate: LocalDate(isoString: "2027-01-01")!),

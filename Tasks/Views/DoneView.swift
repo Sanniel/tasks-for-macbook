@@ -52,6 +52,8 @@ struct DoneView: View {
                 ContentUnavailableView("Nothing completed yet", systemImage: "checkmark.circle")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Palette.surface)
         .navigationTitle("Done")
     }
 }
@@ -68,7 +70,7 @@ struct ArchiveView: View {
                 Section("Areas") {
                     ForEach(areas) { area in
                         HStack(spacing: 10) {
-                            Circle().fill(Color(hex: area.colorHex)).frame(width: 10, height: 10)
+                            Circle().fill(Palette.area(area.colorName)).frame(width: 10, height: 10)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(area.name)
                                 HStack(spacing: 10) {
@@ -115,6 +117,8 @@ struct ArchiveView: View {
                     description: Text("Archived items are kept here for \(Retention.purgeAfterDays) days."))
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Palette.surface)
         .navigationTitle("Archive")
     }
 }
@@ -126,7 +130,7 @@ struct AreaTag: View {
     var body: some View {
         if let area = model.area(areaID) {
             HStack(spacing: 4) {
-                Circle().fill(Color(hex: area.colorHex)).frame(width: 7, height: 7)
+                Circle().fill(Palette.area(area.colorName)).frame(width: 7, height: 7)
                 Text(area.name)
             }
         }

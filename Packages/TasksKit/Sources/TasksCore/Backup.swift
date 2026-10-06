@@ -2,13 +2,14 @@ import Foundation
 
 /// JSON export/import of all data: a backup and a future migration path.
 ///
-/// File format (version 1), keys as in the TasksCore models:
+/// File format (version 2), keys as in the TasksCore models. Version 1 stored area
+/// colors as "colorHex"; those files still import (mapped to color names).
 ///
 ///     {
 ///       "format": "fi.sannier.tasks.backup",
-///       "version": 1,
+///       "version": 2,
 ///       "exportedAt": "2026-10-06T08:15:30.123Z",
-///       "areas":      [ { "id", "name", "colorHex", "sortOrder", "archivedAt"?, "createdAt", "updatedAt" } ],
+///       "areas":      [ { "id", "name", "colorName", "sortOrder", "archivedAt"?, "createdAt", "updatedAt" } ],
 ///       "tasks":      [ { "id", "title", "areaID", "priority" (-1…3), "notes"?, "startDate"?, "dueDate"?,
 ///                         "recurrence"?, "completedAt"?, "archivedAt"?, "archivedWithArea",
 ///                         "previousOccurrenceID"?, "createdAt", "updatedAt" } ],
@@ -20,7 +21,7 @@ import Foundation
 /// recurrence is the `RecurrenceRule` JSON; optional keys are omitted when empty.
 public struct BackupDocument: Codable, Equatable, Sendable {
     public static let formatIdentifier = "fi.sannier.tasks.backup"
-    public static let currentVersion = 1
+    public static let currentVersion = 2
 
     public var format: String
     public var version: Int

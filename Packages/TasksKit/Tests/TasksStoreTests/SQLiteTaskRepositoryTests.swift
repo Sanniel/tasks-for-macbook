@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TasksCore
 @testable import TasksStore
+import GRDB
 
 @Suite struct SQLiteTaskRepositoryTests {
     let repo: SQLiteTaskRepository
@@ -13,7 +14,7 @@ import TasksCore
     }
 
     private func makeArea(_ name: String = "Private", order: Int = 0) -> Area {
-        Area(name: name, colorHex: "#3366FF", sortOrder: order, createdAt: t0)
+        Area(name: name, colorName: "Slate", sortOrder: order, createdAt: t0)
     }
 
     @Test func roundTripsAllTaskFields() throws {
@@ -133,5 +134,24 @@ import TasksCore
 
         // A second connection (as the widget process would open) sees the data.
         #expect(try SQLiteTaskRepository(url: url).fetchAreas(includeArchived: false) == [area])
+    }
+}
+
+@Suite struct SchemaMigrationTests {
+    @Test func hexAreaColorsBecomeNames() throws {
+        let queue = try DatabaseQueue()
+        try Schema.migrator.migrate(queue, upTo: "v2-previousOccurrence")
+        try queue.write { db in
+            try db.execute(sql: """
+                INSERT INTO area (id, name, colorHex, sortOrder, createdAt, updatedAt)
+                VALUES ('a', 'Private', '#0090FF', 0, '2026-10-01 08:00:00.000', '2026-10-01 08:00:00.000'),
+                       ('b', 'Odd', '#ABCDEF', 1, '2026-10-01 08:00:00.000', '2026-10-01 08:00:00.000')
+                """)
+        }
+        try Schema.migrator.migrate(queue)
+        let names = try queue.read { db in
+            try String.fetchAll(db, sql: "SELECT colorName FROM area ORDER BY sortOrder")
+        }
+        #expect(names == ["Slate", AreaColors.fallback])
     }
 }

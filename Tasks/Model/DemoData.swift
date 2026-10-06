@@ -12,10 +12,10 @@ enum DemoData {
         let now = Date()
         func day(_ offset: Int) -> LocalDate { today.adding(days: offset) }
 
-        let priv = Area(name: "Private", colorHex: AreaPalette.colors[5], sortOrder: 0)
-        let learning = Area(name: "Learning", colorHex: AreaPalette.colors[7], sortOrder: 1)
-        let client = Area(name: "Client X", colorHex: AreaPalette.colors[1], sortOrder: 2)
-        var oldArea = Area(name: "Old project", colorHex: AreaPalette.colors[9], sortOrder: 3)
+        let priv = Area(name: "Private", colorName: "Sage", sortOrder: 0)
+        let learning = Area(name: "Learning", colorName: "Slate", sortOrder: 1)
+        let client = Area(name: "Client X", colorName: "Terracotta", sortOrder: 2)
+        var oldArea = Area(name: "Old project", colorName: "Clay", sortOrder: 3)
         oldArea.archivedAt = now.addingTimeInterval(-5 * 86_400)
 
         let report = TaskItem(title: "Send monthly report", areaID: client.id, priority: .high, dueDate: day(-2))

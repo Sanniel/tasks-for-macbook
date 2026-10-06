@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tasks Palette</title>
+<style>
+:root{--bg:#F7F4EF;--surface:#FDFBF8;--text:#2E2B27;--text2:#6E6862;--text3:#9C958C;--sep:#E4DED5;}
+*{box-sizing:border-box}
+body{margin:0;background:#EDE9E2;color:#2E2B27;font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;padding:24px 16px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:28px 0 10px;color:#6E6862;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+p{margin:0;color:#6E6862}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sw{border-radius:10px;overflow:hidden;background:#FDFBF8;border:1px solid #E4DED5}
+.sw .c{display:flex;height:56px}.sw .c div{flex:1}
+.sw .l{padding:8px 10px;font-size:12px}.sw .l b{display:block;font-size:13px}
+code{font:12px ui-monospace,Menlo,monospace;color:#6E6862}
+.panes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.panes{grid-template-columns:1fr}}
+.pane{border-radius:14px;padding:14px;background:var(--bg);color:var(--text)}
+.pane.dark{--bg:#1E1C1A;--surface:#282522;--text:#EDE8E1;--text2:#A39C93;--text3:#6E6861;--sep:#3A3632}
+.pane h3{margin:0 0 10px;font-size:13px;color:var(--text2);font-weight:600}
+.row{display:flex;align-items:center;gap:10px;background:var(--surface);padding:10px 12px;border-bottom:1px solid var(--sep)}
+.row:first-of-type{border-radius:10px 10px 0 0}.row:last-of-type{border-radius:0 0 10px 10px;border-bottom:0}
+.box{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--text3);flex:none}
+.bar{width:4px;align-self:stretch;border-radius:2px;flex:none}
+.t{flex:1;min-width:0}.t div:first-child{font-weight:500}
+.meta{font-size:12px;color:var(--text2)}
+.pri{font-size:12px;font-weight:700;letter-spacing:-.5px}
+.od{color:var(--od)}.urg{color:var(--urg)}
+.pane{--od:#B23F3A;--urg:#B07A2A}.pane.dark{--od:#D4706A;--urg:#C9A660}
+.later{opacity:1}.later .t div:first-child,.later .meta{color:var(--text3)}
+.odrow{box-shadow:inset 3px 0 0 var(--od)}
+</style></head><body><div class="wrap">
+<h1>Tasks palette</h1>
+<p>Muted, earthy colors built around your terracotta and sage. Each swatch shows the light-mode color (left) and its dark-mode version (right).</p>
+
+<h2>Area colors</h2>
+<div class="grid" id="areas"></div>
+
+<h2>Status colors</h2>
+<div class="grid" id="sem"></div>
+
+<h2>Neutrals</h2>
+<div class="grid" id="neu"></div>
+
+<h2>In use</h2>
+<div class="panes">
+ <div class="pane" id="p1"><h3>Light</h3></div>
+ <div class="pane dark" id="p2"><h3>Dark</h3></div>
+</div>
+</div>
+<script>
+const areas=[["Terracotta","#C76A4A","#D38A71"],["Sage","#5C8D76","#76A68F"],["Slate","#5B7A99","#7893AF"],["Ochre","#B08838","#C9A660"],["Plum","#8A6A8F","#A186A6"],["Rose","#AD7380","#CA9BA4"],["Teal","#4F8A8B","#65A7A8"],["Olive","#8A8F55","#A4A96E"],["Clay","#9A7558","#B08F75"],["Iris","#7C7FA8","#9B9DBC"]];
+const sem=[["Overdue","#B23F3A","#D4706A","Red text + row marker"],["Urgent","#B07A2A","#C9A660","Priority 3 marker"],["Raised by due date","#6E6862","#A39C93","Subtle indicator"],["Not started","#9C958C","#6E6861","Greyed-out text"]];
+const neu=[["Background","#F7F4EF","#1E1C1A"],["Surface","#FDFBF8","#282522"],["Text","#2E2B27","#EDE8E1"],["Secondary text","#6E6862","#A39C93"],["Tertiary text","#9C958C","#6E6861"],["Separator","#E4DED5","#3A3632"]];
+const sw=(n,a,b,note)=>`<div class="sw"><div class="c"><div style="background:${a}"></div><div style="background:${b}"></div></div><div class="l"><b>${n}</b><code>${a} · ${b}</code>${note?`<div class="meta">${note}</div>`:""}</div></div>`;
+areas.forEach(x=>document.getElementById('areas').innerHTML+=sw(...x));
+sem.forEach(x=>document.getElementById('sem').innerHTML+=sw(...x));
+neu.forEach(x=>document.getElementById('neu').innerHTML+=sw(...x));
+const tasks=[
+ {t:"Send invoice",a:0,area:"Client X",due:"Overdue · 2 days",od:1,p:"!!!"},
+ {t:"Review contract draft",a:2,area:"Client Y",due:"Tomorrow",p:"!!!",urg:1},
+ {t:"Finish SwiftUI course module",a:1,area:"Learning",due:"In 3 days",p:"!!"},
+ {t:"Book dentist",a:5,area:"Private",due:"",p:""},
+ {t:"Plan autumn trip",a:5,area:"Private",due:"Starts Oct 20",later:1,p:""}];
+for(const [id,dark] of [["p1",0],["p2",1]]){
+ const el=document.getElementById(id);
+ el.innerHTML+=tasks.map(k=>{const c=areas[k.a][dark?2:1];
+  return `<div class="row${k.od?' odrow':''}${k.later?' later':''}"><div class="box"></div><div class="bar" style="background:${c};${k.later?'opacity:.45':''}"></div><div class="t"><div>${k.t}</div><div class="meta"><span style="color:${k.later?'':c}">●</span> ${k.area}${k.due?` · <span class="${k.od?'od':''}">${k.due}</span>`:""}</div></div><span class="pri ${k.od?'od':k.urg||k.p=='!!!'?'urg':'meta'}">${k.p}</span></div>`}).join("");
+}
+</script></body></html>

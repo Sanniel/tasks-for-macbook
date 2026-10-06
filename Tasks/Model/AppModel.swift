@@ -192,20 +192,25 @@ final class AppModel {
 
     // MARK: Areas
 
-    func saveArea(id: UUID?, name: String, colorHex: String) {
+    func saveArea(id: UUID?, name: String, colorName: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         if let id, var area = area(id) {
             area.name = trimmed
-            area.colorHex = colorHex
+            area.colorName = colorName
             area.updatedAt = Date()
             apply(ChangeSet(areas: [area]))
         } else {
             let order = (areas.map(\.sortOrder).max() ?? -1) + 1
-            let area = Area(name: trimmed, colorHex: colorHex, sortOrder: order)
+            let area = Area(name: trimmed, colorName: colorName, sortOrder: order)
             apply(ChangeSet(areas: [area]))
             sidebarSelection = .area(area.id)
         }
+    }
+
+    /// Default color for a new area: the next palette color no active area uses.
+    var nextAreaColor: String {
+        AreaColors.nextUnused(after: activeAreas.map(\.colorName))
     }
 
     /// Reorders active areas (sidebar drag and drop).
@@ -278,7 +283,7 @@ final class AppModel {
     /// A brand-new database gets one area so tasks can be added right away.
     private func seedFirstAreaIfNeeded() {
         guard areas.isEmpty, let repository, (try? repository.fetchTombstones().isEmpty) == true else { return }
-        apply(ChangeSet(areas: [Area(name: "Private", colorHex: AreaPalette.colors[5], sortOrder: 0)]))
+        apply(ChangeSet(areas: [Area(name: "Private", colorName: AreaColors.names[0], sortOrder: 0)]))
     }
 
     private func runPurge() {

@@ -8,6 +8,8 @@ struct PriorityMark: View {
     let priority: Priority
     /// Point size of the exclamation marks; the Low arrow is drawn 3 pt smaller.
     var size: CGFloat = 14
+    /// Overrides the priority's color (e.g. overdue rows use the overdue color).
+    var tint: Color? = nil
 
     var body: some View {
         switch priority {
@@ -16,11 +18,11 @@ struct PriorityMark: View {
         case .low:
             Image(systemName: "arrow.down")
                 .font(.system(size: size - 3, weight: .heavy))
-                .foregroundStyle(priority.color)
+                .foregroundStyle(tint ?? priority.color)
         default:
             Text(String(repeating: "!", count: priority.rawValue))
                 .font(.system(size: size, weight: .heavy))
-                .foregroundStyle(priority.color)
+                .foregroundStyle(tint ?? priority.color)
         }
     }
 }
@@ -36,6 +38,6 @@ struct AreaPill: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(Color(hex: area.colorHex), in: .rect(cornerRadius: 5))
+            .background(Palette.area(area.colorName), in: .rect(cornerRadius: 5))
     }
 }

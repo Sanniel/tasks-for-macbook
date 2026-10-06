@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct PurgeTests {
     let now = instant("2026-10-31")
-    let area = Area(name: "Private", colorHex: "#FF0000", sortOrder: 0)
+    let area = Area(name: "Private", colorName: "Slate", sortOrder: 0)
 
     private func task(completed: String? = nil, archived: String? = nil, area: Area? = nil) -> TaskItem {
         var t = TaskItem(title: "t", areaID: (area ?? self.area).id)
@@ -39,7 +39,7 @@ import Testing
     }
 
     @Test func archivedAreaPurgedWithItsTasks() {
-        var oldArea = Area(name: "Old", colorHex: "#00FF00", sortOrder: 1)
+        var oldArea = Area(name: "Old", colorName: "Slate", sortOrder: 1)
         oldArea.archivedAt = instant("2026-09-20")
         let inOldArea = task(completed: "2026-10-30", area: oldArea)
         let plan = Purge.plan(areas: [area, oldArea], tasks: [inOldArea], now: now, calendar: utc)

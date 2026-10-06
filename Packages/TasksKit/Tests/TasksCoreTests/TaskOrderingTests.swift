@@ -4,8 +4,8 @@ import Testing
 
 @Suite struct TaskOrderingTests {
     let today = d("2026-10-05")
-    let first = Area(name: "First", colorHex: "#000000", sortOrder: 0)
-    let second = Area(name: "Second", colorHex: "#000000", sortOrder: 1)
+    let first = Area(name: "First", colorName: "Slate", sortOrder: 0)
+    let second = Area(name: "Second", colorName: "Slate", sortOrder: 1)
 
     private func task(
         _ title: String, area: Area? = nil, priority: Priority = .normal,
@@ -80,7 +80,7 @@ import Testing
     }
 
     @Test func openTasksSkipsClosedAndArchivedAreas() {
-        var archivedArea = Area(name: "Old", colorHex: "#000000", sortOrder: 2)
+        var archivedArea = Area(name: "Old", colorName: "Slate", sortOrder: 2)
         archivedArea.archivedAt = instant("2026-10-01")
         var done = task("done")
         done.completedAt = instant("2026-10-01")

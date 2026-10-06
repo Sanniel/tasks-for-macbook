@@ -25,7 +25,7 @@ public final class SQLiteTaskRepository: TaskRepository {
         try SQLiteTaskRepository(dbWriter: DatabaseQueue())
     }
 
-    private init(dbWriter: any DatabaseWriter) throws {
+    init(dbWriter: any DatabaseWriter) throws {
         self.dbWriter = dbWriter
         try Schema.migrator.migrate(dbWriter)
     }

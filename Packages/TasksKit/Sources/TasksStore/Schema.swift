@@ -1,4 +1,5 @@
 import GRDB
+import TasksCore
 
 /// SQLite schema. Kept deliberately portable (to Android/SQLite or a web backend):
 /// - ids are lowercase UUID strings
@@ -60,6 +61,21 @@ enum Schema {
                 // No foreign key: the previous occurrence may be purged before this one.
                 t.add(column: "previousOccurrenceId", .text)
             }
+        }
+
+        // Area colors become palette names instead of hex values (see AreaColors).
+        migrator.registerMigration("v3-areaColorName") { db in
+            try db.alter(table: "area") { t in
+                t.add(column: "colorName", .text).notNull().defaults(to: AreaColors.fallback)
+            }
+            let rows = try Row.fetchAll(db, sql: "SELECT id, colorHex FROM area")
+            for row in rows {
+                let hex: String = row["colorHex"]
+                try db.execute(
+                    sql: "UPDATE area SET colorName = ? WHERE id = ?",
+                    arguments: [AreaColors.name(forLegacyHex: hex), row["id"] as String])
+            }
+            try db.alter(table: "area") { t in t.drop(column: "colorHex") }
         }
 
         return migrator

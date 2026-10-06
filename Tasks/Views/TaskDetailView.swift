@@ -51,7 +51,7 @@ struct TaskDetailView: View {
                     OptionalDateRow(title: "Due", date: $draft.dueDate, defaultDate: today)
                     if let due = draft.dueDate, due <= today {
                         Label(due < today ? "Overdue" : "Due today", systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Palette.overdue)
                     }
                 }
 
@@ -76,7 +76,7 @@ struct TaskDetailView: View {
                     Section {
                         ForEach(draft.validationErrors, id: \.self) { error in
                             Label(error.message, systemImage: "exclamationmark.triangle")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Palette.overdue)
                         }
                         Text("Changes are saved once this is fixed.").font(.caption).foregroundStyle(.secondary)
                     }
@@ -91,7 +91,9 @@ struct TaskDetailView: View {
                 }
             }
             .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
         }
+        .background(Palette.background)
         .onChange(of: draft) { model.update(draft) }
         .onChange(of: task) {
             // Pick up changes made elsewhere (e.g. priority from the list), without

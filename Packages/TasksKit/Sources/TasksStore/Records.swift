@@ -34,7 +34,7 @@ struct AreaRecord: Codable, FetchableRecord, PersistableRecord {
 
     var id: String
     var name: String
-    var colorHex: String
+    var colorName: String
     var sortOrder: Int
     var archivedAt: Date?
     var createdAt: Date
@@ -43,7 +43,7 @@ struct AreaRecord: Codable, FetchableRecord, PersistableRecord {
     init(_ area: Area) {
         id = area.id.dbString
         name = area.name
-        colorHex = area.colorHex
+        colorName = area.colorName
         sortOrder = area.sortOrder
         archivedAt = area.archivedAt
         createdAt = area.createdAt
@@ -52,7 +52,7 @@ struct AreaRecord: Codable, FetchableRecord, PersistableRecord {
 
     func model() throws -> Area {
         Area(
-            id: try uuid(id, "area.id"), name: name, colorHex: colorHex, sortOrder: sortOrder,
+            id: try uuid(id, "area.id"), name: name, colorName: colorName, sortOrder: sortOrder,
             archivedAt: archivedAt, createdAt: createdAt, updatedAt: updatedAt)
     }
 }

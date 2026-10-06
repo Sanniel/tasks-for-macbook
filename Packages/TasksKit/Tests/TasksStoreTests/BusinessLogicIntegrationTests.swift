@@ -15,8 +15,8 @@ import TasksCore
     private func days(_ n: Int) -> Date { t0.addingTimeInterval(TimeInterval(n) * 86_400) }
 
     @Test func purgeRunRemovesExpiredRecordsAndPrunesTombstones() throws {
-        var oldArea = Area(name: "Old", colorHex: "#000000", sortOrder: 0, createdAt: t0)
-        let keepArea = Area(name: "Keep", colorHex: "#000000", sortOrder: 1, createdAt: t0)
+        var oldArea = Area(name: "Old", colorName: "Slate", sortOrder: 0, createdAt: t0)
+        let keepArea = Area(name: "Keep", colorName: "Slate", sortOrder: 1, createdAt: t0)
         let inOldArea = TaskItem(title: "in old area", areaID: oldArea.id, completedAt: days(10), createdAt: t0)
         let oldDone = TaskItem(title: "old done", areaID: keepArea.id, completedAt: t0, createdAt: t0)
         let recentDone = TaskItem(title: "recent done", areaID: keepArea.id, completedAt: days(20), createdAt: t0)
@@ -36,7 +36,7 @@ import TasksCore
     }
 
     @Test func setSubtaskTicksItemAndTouchesTask() throws {
-        let area = Area(name: "Home", colorHex: "#000000", sortOrder: 0, createdAt: t0)
+        let area = Area(name: "Home", colorName: "Slate", sortOrder: 0, createdAt: t0)
         let task = TaskItem(title: "Clean", areaID: area.id, createdAt: t0)
         let sub = Subtask(taskID: task.id, title: "Kitchen", sortOrder: 0, createdAt: t0)
         try repo.apply(ChangeSet(areas: [area], tasks: [task], subtasks: [sub]))
@@ -48,7 +48,7 @@ import TasksCore
     }
 
     @Test func completeTaskCreatesNextOccurrenceWithSubtasks() throws {
-        let area = Area(name: "Home", colorHex: "#000000", sortOrder: 0, createdAt: t0)
+        let area = Area(name: "Home", colorName: "Slate", sortOrder: 0, createdAt: t0)
         let task = TaskItem(
             title: "Bins", areaID: area.id, dueDate: LocalDate(isoString: "2026-10-05"),
             recurrence: RecurrenceRule(pattern: .weekly(weekdays: [.monday]), endDate: LocalDate(isoString: "2026-12-31")!),

@@ -9,8 +9,8 @@ import Foundation
 public struct Area: Identifiable, Hashable, Codable, Sendable {
     public var id: UUID
     public var name: String
-    /// `#RRGGBB`
-    public var colorHex: String
+    /// A name from `AreaColors.names`, e.g. "Terracotta".
+    public var colorName: String
     /// User-defined order; lower comes first.
     public var sortOrder: Int
     /// Soft delete. Purged 30 days after this date.
@@ -19,16 +19,49 @@ public struct Area: Identifiable, Hashable, Codable, Sendable {
     public var updatedAt: Date
 
     public init(
-        id: UUID = UUID(), name: String, colorHex: String, sortOrder: Int,
+        id: UUID = UUID(), name: String, colorName: String, sortOrder: Int,
         archivedAt: Date? = nil, createdAt: Date = Date(), updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
-        self.colorHex = colorHex
+        self.colorName = colorName
         self.sortOrder = sortOrder
         self.archivedAt = archivedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
+    }
+}
+
+extension Area {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, colorName, sortOrder, archivedAt, createdAt, updatedAt
+        case colorHex  // backups from before named colors
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        if let colorName = try c.decodeIfPresent(String.self, forKey: .colorName) {
+            self.colorName = colorName
+        } else {
+            colorName = AreaColors.name(forLegacyHex: try c.decode(String.self, forKey: .colorHex))
+        }
+        sortOrder = try c.decode(Int.self, forKey: .sortOrder)
+        archivedAt = try c.decodeIfPresent(Date.self, forKey: .archivedAt)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(name, forKey: .name)
+        try c.encode(colorName, forKey: .colorName)
+        try c.encode(sortOrder, forKey: .sortOrder)
+        try c.encodeIfPresent(archivedAt, forKey: .archivedAt)
+        try c.encode(createdAt, forKey: .createdAt)
+        try c.encode(updatedAt, forKey: .updatedAt)
     }
 }
 

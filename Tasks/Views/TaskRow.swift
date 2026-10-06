@@ -14,9 +14,9 @@ struct TaskRow: View {
 
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 8) {
-                // Red marker for tasks due today or overdue.
+                // Marker for tasks due today or overdue.
                 RoundedRectangle(cornerRadius: 1.5)
-                    .fill(red ? Color.red : Color.clear)
+                    .fill(red ? Palette.overdue : Color.clear)
                     .frame(width: 3)
 
                 Button {
@@ -24,7 +24,7 @@ struct TaskRow: View {
                 } label: {
                     Image(systemName: "circle")
                         .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.tertiaryText)
                 }
                 .buttonStyle(.plain)
                 .help("Complete")
@@ -32,14 +32,15 @@ struct TaskRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(task.title)
                         .font(.system(size: 15, weight: red ? .medium : .regular))
+                        .foregroundStyle(started ? Palette.text : Palette.notStarted)
                         .lineLimit(2)
                     HStack(spacing: 10) {
                         if !started, let start = task.startDate {
                             Label("Starts \(start.friendlyText(today: today))", systemImage: "hourglass")
                         }
                         if let due = task.dueDate {
-                            Label(due.friendlyText(today: today), systemImage: "calendar")
-                                .foregroundStyle(red ? Color.red : Color.secondary)
+                            Label(due.dueText(today: today), systemImage: "calendar")
+                                .foregroundStyle(red ? Palette.overdue : (started ? Palette.secondaryText : Palette.notStarted))
                         }
                         if task.isRecurring {
                             Label(
@@ -56,18 +57,23 @@ struct TaskRow: View {
                     }
                     .labelStyle(CompactLabelStyle())
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(started ? Palette.secondaryText : Palette.notStarted)
                 }
                 Spacer(minLength: 8)
 
                 // Fixed-width columns so rows line up like a table.
                 if showArea {
                     Group {
-                        if let area = model.area(task.areaID) { AreaPill(area: area) }
+                        if let area = model.area(task.areaID) {
+                            AreaPill(area: area).opacity(started ? 1 : 0.45)
+                        }
                     }
                     .frame(width: TaskColumns.area, alignment: .leading)
                 }
-                PriorityMenu(priority: task.priority, effective: EffectivePriority(task, today: today)) {
+                PriorityMenu(
+                    priority: task.priority, effective: EffectivePriority(task, today: today),
+                    tint: red ? Palette.overdue : nil
+                ) {
                     model.setPriority($0, for: [task.id])
                 }
                 .frame(width: TaskColumns.priority, alignment: .trailing)
@@ -80,7 +86,6 @@ struct TaskRow: View {
             .padding(.leading, TaskColumns.titleIndent)
         }
         .padding(.vertical, 3)
-        .opacity(started ? 1 : 0.5)
     }
 }
 
@@ -115,13 +120,13 @@ struct SubtaskLine: View {
             } label: {
                 Image(systemName: subtask.isDone ? "checkmark.square.fill" : "square")
                     .font(.system(size: 16))
-                    .foregroundStyle(subtask.isDone ? Color.secondary : Color.primary.opacity(0.6))
+                    .foregroundStyle(subtask.isDone ? Palette.tertiaryText : Palette.secondaryText)
             }
             .buttonStyle(.plain)
             .help(subtask.isDone ? "Mark not done" : "Mark done")
             Text(subtask.title)
                 .strikethrough(subtask.isDone)
-                .foregroundStyle(subtask.isDone ? Color.secondary : Color.primary.opacity(0.75))
+                .foregroundStyle(subtask.isDone ? Palette.tertiaryText : Palette.text.opacity(0.75))
                 .lineLimit(1)
         }
         .font(.system(size: 14))
