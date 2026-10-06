@@ -78,6 +78,16 @@ import Testing
         #expect(!monthly([], until: "2027-01-01").isValid)
     }
 
+    @Test func dueTodayOrOverdue() {
+        let today = d("2026-10-06")
+        func task(_ due: String?) -> TaskItem { TaskItem(title: "t", areaID: UUID(), dueDate: due.map(d)) }
+        #expect(task("2026-10-05").isDueTodayOrOverdue(today: today))
+        #expect(task("2026-10-06").isDueTodayOrOverdue(today: today))
+        #expect(!task("2026-10-07").isDueTodayOrOverdue(today: today))
+        #expect(!task(nil).isDueTodayOrOverdue(today: today))
+        #expect(!task("2026-10-06").isOverdue(today: today))
+    }
+
     @Test func lastOccurrenceIndicator() {
         var task = TaskItem(
             title: "Standup", areaID: UUID(), dueDate: d("2026-10-12"),

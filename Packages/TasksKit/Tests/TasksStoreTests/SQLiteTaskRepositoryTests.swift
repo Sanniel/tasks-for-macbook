@@ -23,7 +23,7 @@ import TasksCore
             startDate: LocalDate(isoString: "2026-10-01"), dueDate: LocalDate(isoString: "2026-10-05"),
             recurrence: RecurrenceRule(pattern: .monthly(days: [5]), endDate: LocalDate(isoString: "2027-10-05")!),
             completedAt: t0.addingTimeInterval(60), archivedAt: t0.addingTimeInterval(120),
-            archivedWithArea: true, createdAt: t0, updatedAt: t0.addingTimeInterval(180))
+            archivedWithArea: true, previousOccurrenceID: UUID(), createdAt: t0, updatedAt: t0.addingTimeInterval(180))
         try repo.apply(ChangeSet(areas: [area], tasks: [task]))
 
         #expect(try repo.fetchArea(id: area.id) == area)

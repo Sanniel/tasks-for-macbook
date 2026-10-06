@@ -55,6 +55,13 @@ enum Schema {
             }
         }
 
+        migrator.registerMigration("v2-previousOccurrence") { db in
+            try db.alter(table: "task") { t in
+                // No foreign key: the previous occurrence may be purged before this one.
+                t.add(column: "previousOccurrenceId", .text)
+            }
+        }
+
         return migrator
     }
 }

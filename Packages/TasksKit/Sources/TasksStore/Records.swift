@@ -72,6 +72,7 @@ struct TaskRecord: Codable, FetchableRecord, PersistableRecord {
     var completedAt: Date?
     var archivedAt: Date?
     var archivedWithArea: Bool
+    var previousOccurrenceId: String?
     var createdAt: Date
     var updatedAt: Date
 
@@ -95,6 +96,7 @@ struct TaskRecord: Codable, FetchableRecord, PersistableRecord {
         completedAt = task.completedAt
         archivedAt = task.archivedAt
         archivedWithArea = task.archivedWithArea
+        previousOccurrenceId = task.previousOccurrenceID?.dbString
         createdAt = task.createdAt
         updatedAt = task.updatedAt
     }
@@ -117,6 +119,7 @@ struct TaskRecord: Codable, FetchableRecord, PersistableRecord {
             completedAt: completedAt,
             archivedAt: archivedAt,
             archivedWithArea: archivedWithArea,
+            previousOccurrenceID: try previousOccurrenceId.map { try uuid($0, "task.previousOccurrenceId") },
             createdAt: createdAt,
             updatedAt: updatedAt)
     }

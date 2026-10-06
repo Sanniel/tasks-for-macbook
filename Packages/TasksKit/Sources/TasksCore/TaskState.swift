@@ -19,6 +19,13 @@ extension TaskItem {
         return dueDate < today
     }
 
+    /// Due today or overdue. These tasks are marked red in lists and the widget
+    /// (only overdue ones sort first; see TaskOrdering).
+    public func isDueTodayOrOverdue(today: LocalDate) -> Bool {
+        guard let dueDate else { return false }
+        return dueDate <= today
+    }
+
     public var isRecurring: Bool { recurrence != nil }
 
     /// A recurring task whose pattern has no occurrence after this one's due date

@@ -60,7 +60,7 @@ import Testing
     @Test func reopen() {
         var task = TaskItem(title: "x", areaID: area.id)
         task.completedAt = now
-        let reopened = TaskActions.reopen(task, now: now).tasks
+        let reopened = TaskActions.reopen(task, allTasks: [], now: now).tasks
         #expect(reopened.count == 1 && reopened[0].completedAt == nil)
     }
 
@@ -68,8 +68,38 @@ import Testing
         let task = TaskItem(title: "x", areaID: area.id)
         let archived = try #require(TaskActions.archive(task, now: now).tasks.first)
         #expect(archived.archivedAt == now && !archived.archivedWithArea)
-        let restored = try #require(TaskActions.restore(archived, now: now).tasks.first)
+        let restored = try #require(TaskActions.restore(archived, area: area, now: now).tasks.first)
         #expect(restored.archivedAt == nil)
+    }
+
+    @Test func reopeningRecurringRemovesUntouchedSuccessor() throws {
+        let rule = RecurrenceRule(pattern: .weekly(weekdays: [.monday]), endDate: d("2027-01-01"))
+        let task = TaskItem(title: "Gym", areaID: area.id, dueDate: d("2026-10-05"), recurrence: rule)
+        let completion = TaskActions.complete(task, subtasks: [], now: now)
+        let done = try #require(completion.tasks.first { $0.id == task.id })
+        let successor = try #require(completion.tasks.first { $0.id != task.id })
+        #expect(successor.previousOccurrenceID == task.id)
+
+        let reopen = TaskActions.reopen(done, allTasks: [done, successor], now: instant("2026-10-06"))
+        #expect(reopen.purgedTaskIDs == [successor.id])
+        #expect(reopen.tasks.map(\.completedAt) == [nil])
+
+        // Once the successor (or one of its subtasks) was edited, it is kept.
+        var edited = successor
+        edited.updatedAt = instant("2026-10-06")
+        #expect(TaskActions.reopen(done, allTasks: [done, edited], now: now).purgedTaskIDs.isEmpty)
+    }
+
+    @Test func restoringTaskRestoresItsArchivedAreaOnly() throws {
+        var archivedArea = area
+        archivedArea.archivedAt = now
+        var task = TaskItem(title: "x", areaID: area.id)
+        task.archivedAt = now
+        let changes = TaskActions.restore(task, area: archivedArea, now: now)
+        #expect(changes.areas.map(\.archivedAt) == [nil])
+        #expect(changes.tasks.map(\.id) == [task.id])
+        // Area already active: untouched.
+        #expect(TaskActions.restore(task, area: area, now: now).areas.isEmpty)
     }
 
     @Test func archivingAreaArchivesOnlyItsOpenTasks() {

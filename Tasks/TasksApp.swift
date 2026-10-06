@@ -1,42 +1,51 @@
 import SwiftUI
 import TasksCore
-import TasksStore
 
 @main
 struct TasksApp: App {
+    @State private var model = AppModel.live()
+
     var body: some Scene {
-        WindowGroup {
-            SetupStatusView()
+        Window("Tasks", id: "main") {
+            ContentView()
+                .environment(model)
+                // Room for sidebar + narrowed task list + inspector, so none gets clipped.
+                .frame(minWidth: 940, minHeight: 500)
+                #if DEBUG
+                .onAppear { DebugSnapshot.scheduleIfRequested() }
+                #endif
         }
+        .defaultSize(width: 1180, height: 740)
+        .commands { TaskCommands(model: model) }
     }
 }
 
-/// Step-1 placeholder: confirms the shared database opens from the App Group.
-/// Replaced by the real task lists in step 3.
-struct SetupStatusView: View {
-    @State private var status = "Opening database…"
+/// Menu bar commands. Priority shortcuts are the stored value: ⌘3 Urgent, ⌘2 High,
+/// ⌘1 Raised, ⌘0 Normal, ⌘- Low.
+struct TaskCommands: Commands {
+    let model: AppModel
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Tasks").font(.largeTitle.bold())
-            Text(status).textSelection(.enabled)
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("New Task") { model.focusQuickAdd() }
+                .keyboardShortcut("n")
         }
-        .padding(24)
-        .frame(minWidth: 480, minHeight: 200, alignment: .topLeading)
-        .task { load() }
-    }
-
-    private func load() {
-        do {
-            let repository = try SharedStore.openRepository()
-            let areas = try repository.fetchAreas(includeArchived: false)
-            let tasks = try repository.fetchTasks(TaskQuery(status: .open))
-            status = """
-                Database: \(try SharedStore.databaseURL().path)
-                \(areas.count) areas, \(tasks.count) open tasks
-                """
-        } catch {
-            status = "Could not open database: \(error)"
+        CommandMenu("Task") {
+            let selection = model.selectedTaskIDs
+            // Actions read the selection when clicked; `selection` only drives enabled state.
+            Button("Complete") { model.complete(model.selectedTaskIDs) }
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(selection.isEmpty)
+            Divider()
+            ForEach(Priority.menuOrder, id: \.self) { priority in
+                Button("Priority: \(priority.name)") { model.setPriority(priority, for: model.selectedTaskIDs) }
+                    .keyboardShortcut(priority.shortcut, modifiers: .command)
+                    .disabled(selection.isEmpty)
+            }
+            Divider()
+            // Delete key in the list also archives (see TaskListView).
+            Button("Archive") { model.archive(model.selectedTaskIDs) }
+                .disabled(selection.isEmpty)
         }
     }
 }

@@ -52,6 +52,10 @@ public struct TaskItem: Identifiable, Hashable, Codable, Sendable {
     /// True when the task was archived as part of archiving its area, so that
     /// restoring the area restores exactly those tasks.
     public var archivedWithArea: Bool
+    /// For a generated recurring occurrence: the occurrence whose completion created it.
+    /// Used to remove an untouched successor when that occurrence is reopened.
+    public var previousOccurrenceID: UUID?
+    /// Set on every edit to the task or any of its subtasks.
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -59,8 +63,10 @@ public struct TaskItem: Identifiable, Hashable, Codable, Sendable {
         id: UUID = UUID(), title: String, areaID: UUID, priority: Priority = .normal,
         notes: String? = nil, startDate: LocalDate? = nil, dueDate: LocalDate? = nil,
         recurrence: RecurrenceRule? = nil, completedAt: Date? = nil, archivedAt: Date? = nil,
-        archivedWithArea: Bool = false, createdAt: Date = Date(), updatedAt: Date? = nil
+        archivedWithArea: Bool = false, previousOccurrenceID: UUID? = nil,
+        createdAt: Date = Date(), updatedAt: Date? = nil
     ) {
+        self.previousOccurrenceID = previousOccurrenceID
         self.id = id
         self.title = title
         self.areaID = areaID
