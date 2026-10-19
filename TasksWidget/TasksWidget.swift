@@ -77,6 +77,12 @@ struct Provider: AppIntentTimelineProvider {
         let now = Date()
         let calendar = Calendar.current
         let midnight = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))!
+        // Screenshot mode: switch back to the real data when it expires.
+        if let expiry = SharedStore.demoExpiry(), expiry < midnight {
+            return Timeline(
+                entries: [entry(at: now, configuration: configuration, family: context.family)],
+                policy: .after(expiry))
+        }
         return Timeline(
             entries: [
                 entry(at: now, configuration: configuration, family: context.family),
@@ -101,7 +107,7 @@ struct Provider: AppIntentTimelineProvider {
         let today = LocalDate(date)
         let areaID = configuration.area.flatMap { UUID(uuidString: $0.id) }
         do {
-            let repo = try WidgetStore.repository.get()
+            let repo = try WidgetStore.repository()
             let areas = try repo.fetchAreas(includeArchived: true)
             let area = areaID.flatMap { id in areas.first { $0.id == id } }
             if areaID != nil, area == nil || area?.archivedAt != nil {

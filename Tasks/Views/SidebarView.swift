@@ -37,7 +37,7 @@ struct SidebarView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack(alignment: .leading, spacing: 6) {
-                if model.isDemo {
+                if model.showsDemoLabel {
                     Label("Demo data – not saved", systemImage: "theatermasks")
                         .font(.caption.bold())
                         .foregroundStyle(.orange)

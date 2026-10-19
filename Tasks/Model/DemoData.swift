@@ -1,13 +1,11 @@
-#if DEBUG
 import Foundation
 import TasksCore
 import TasksStore
 
-/// Debug-only sample data, used when the app is launched with `-demo`.
-/// It lives in an in-memory database, so the real one is never touched.
+/// Sample data for `-demo` (an in-memory database) and `-screenshots` (a separate
+/// demo database the widget also shows). The real database is never touched.
 enum DemoData {
-    static func makeRepository() throws -> SQLiteTaskRepository {
-        let repo = try SQLiteTaskRepository.inMemory()
+    static func fill(_ repo: SQLiteTaskRepository) throws {
         let today = LocalDate.today()
         let now = Date()
         func day(_ offset: Int) -> LocalDate { today.adding(days: offset) }
@@ -31,7 +29,7 @@ enum DemoData {
             title: "Pay rent", areaID: priv.id, priority: .urgent, dueDate: day(10),
             recurrence: RecurrenceRule(pattern: .monthly(days: [31]), endDate: day(15)))
         let trip = TaskItem(title: "Plan summer trip", areaID: priv.id, startDate: day(3), dueDate: day(20))
-        let book = TaskItem(title: "read: Designing Data-Intensive Apps", areaID: learning.id)
+        let book = TaskItem(title: "Read “Designing Data-Intensive Applications”", areaID: learning.id)
         let workshop = TaskItem(title: "Prepare workshop", areaID: client.id, priority: .high, dueDate: day(4))
         var done = TaskItem(title: "Renew passport", areaID: priv.id)
         done.completedAt = now.addingTimeInterval(-3 * 86_400)
@@ -53,7 +51,5 @@ enum DemoData {
             areas: [priv, learning, client, oldArea],
             tasks: [report, invoice, course, dentist, gym, rent, trip, book, workshop, done, archived, oldTask],
             subtasks: subtasks))
-        return repo
     }
 }
-#endif

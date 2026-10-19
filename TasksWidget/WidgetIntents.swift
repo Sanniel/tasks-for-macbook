@@ -3,10 +3,18 @@ import TasksCore
 import TasksStore
 import WidgetKit
 
-/// The database, opened once per widget-extension process.
 enum WidgetStore {
-    static let repository: Result<SQLiteTaskRepository, any Error> = Result {
+    /// The real database, opened once per widget-extension process.
+    private static let live: Result<SQLiteTaskRepository, any Error> = Result {
         try SharedStore.openRepository()
+    }
+
+    /// The real database, or the sample data while the app runs in screenshot mode.
+    static func repository() throws -> SQLiteTaskRepository {
+        if SharedStore.demoExpiry() != nil {
+            return try SQLiteTaskRepository(url: SharedStore.demoDatabaseURL())
+        }
+        return try live.get()
     }
 }
 
@@ -27,7 +35,7 @@ struct CompleteTaskIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         guard let id = UUID(uuidString: taskID) else { return .result() }
-        try WidgetStore.repository.get().completeTask(id: id)
+        try WidgetStore.repository().completeTask(id: id)
         ChangeNotifier.post()
         return .result()
     }
@@ -62,7 +70,7 @@ struct AreaQuery: EntityQuery {
     }
 
     private func activeAreas() throws -> [AreaEntity] {
-        try WidgetStore.repository.get().fetchAreas(includeArchived: false)
+        try WidgetStore.repository().fetchAreas(includeArchived: false)
             .map { AreaEntity(id: $0.id.uuidString, name: $0.name) }
     }
 }
@@ -83,7 +91,7 @@ struct CompleteSubtaskIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         guard let id = UUID(uuidString: subtaskID) else { return .result() }
-        try WidgetStore.repository.get().setSubtask(id: id, done: true)
+        try WidgetStore.repository().setSubtask(id: id, done: true)
         ChangeNotifier.post()
         return .result()
     }

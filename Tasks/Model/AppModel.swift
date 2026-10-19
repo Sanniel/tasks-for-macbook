@@ -19,8 +19,10 @@ enum SidebarItem: Hashable {
 @MainActor @Observable
 final class AppModel {
     private let repository: (any TaskRepository)?
-    /// Running on throwaway sample data (`-demo`, Debug builds only).
+    /// Running on throwaway sample data (`-demo` or `-screenshots`).
     let isDemo: Bool
+    /// Show the "Demo data" label in the sidebar (hidden in screenshot mode).
+    var showsDemoLabel: Bool { isDemo && !CommandLine.arguments.contains("-screenshots") }
 
     private(set) var areas: [Area] = []  // including archived, by sortOrder
     private(set) var tasks: [TaskItem] = []  // every task, any status
@@ -49,15 +51,29 @@ final class AppModel {
 
     static func live() -> AppModel {
         do {
-            #if DEBUG
-            if CommandLine.arguments.contains("-demo") {
-                let model = AppModel(repository: try DemoData.makeRepository(), isDemo: true)
-                if CommandLine.arguments.contains("-selectFirst"), let first = model.openTasks(areaID: nil).first {
+            let arguments = CommandLine.arguments
+            if arguments.contains("-screenshots") || arguments.contains("-demo") {
+                let repository: SQLiteTaskRepository
+                if arguments.contains("-screenshots") {
+                    // The widget shows the demo database too, for an hour or until the app quits.
+                    repository = try SharedStore.startDemo(until: Date().addingTimeInterval(3600))
+                    NotificationCenter.default.addObserver(
+                        forName: NSApplication.willTerminateNotification, object: nil, queue: nil
+                    ) { _ in
+                        SharedStore.endDemo()
+                        WidgetCenter.shared.reloadAllTimelines()
+                    }
+                } else {
+                    repository = try .inMemory()
+                }
+                try DemoData.fill(repository)
+                let model = AppModel(repository: repository, isDemo: true)
+                if arguments.contains("-selectFirst"), let first = model.openTasks(areaID: nil).first {
                     model.selectedTaskIDs = [first.id]
                 }
+                WidgetCenter.shared.reloadAllTimelines()
                 return model
             }
-            #endif
             return AppModel(repository: try SharedStore.openRepository())
         } catch {
             return AppModel(repository: nil, startupError: "Could not open the database: \(error)")
