@@ -1,5 +1,9 @@
 # Tasks
 
+> *I never really got along with the built-in Reminders app. It didn't fit the way I actually work, so I made my own: a task app that sorts things the way I think about them. Urgent and overdue stuff comes first, priorities go up on their own as deadlines get closer, and the widget shows what to do next right on my desktop. It's built for exactly one person (me), but feel free to look around.*
+>
+> — Susanna
+
 A personal task list app for macOS with an interactive desktop widget. Built with Swift and SwiftUI for macOS 14+. All data stays on this Mac in a local SQLite database.
 
 ![The Tasks app](docs/screenshots/app.png)
